@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/graphite</item>
+        <item name="android:colorAccent">#FFB547</item>
+        <item name="android:colorBackground">@color/graphite</item>
+    </style>
+    <color name="graphite">#FF0E1116</color>
+</resources>

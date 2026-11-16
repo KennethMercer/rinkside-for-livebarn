@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Release signing key lives OUTSIDE the repository (never commit it). Point to its properties file
+// with the LBTV_KEYSTORE_PROPERTIES environment variable, or keep it at the default location
+// "<repo>/../../Keys/MyLiveBarn/keystore.properties". Without it, release builds use the debug key.
+def keystorePropsFile = file(System.getenv('LBTV_KEYSTORE_PROPERTIES') ?: "${rootDir}/../../Keys/MyLiveBarn/keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+
+android {
+    namespace 'io.github.kennethmercer.livebarntv'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.kennethmercer.livebarntv'
+        minSdk 23          // Android TV 6.0+
+        targetSdk 35
+        // versionCode must always increase so updates install over older builds.
+        versionCode 8
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystoreProps['storeFile']) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // No shrinking: the JavaScript bridge (@JavascriptInterface) must keep its method names.
+            minifyEnabled false
+            signingConfig keystoreProps['storeFile'] ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Native video playback (hardware decoding, live HLS) — 1.1+
+    def media3 = '1.5.1'
+    implementation "androidx.media3:media3-exoplayer:$media3"
+    implementation "androidx.media3:media3-exoplayer-hls:$media3"
+    implementation "androidx.media3:media3-ui:$media3"
+    // Run the bridge script before the site's own scripts — 2.0+
+    implementation 'androidx.webkit:webkit:1.12.1'
+}
