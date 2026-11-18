@@ -20,6 +20,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -192,6 +193,9 @@ public class MainActivity extends Activity implements TvUi.Host {
         boolean nativeUi = m == Mode.LOADING || m == Mode.BROWSE;
         ui.root.setVisibility(nativeUi ? View.VISIBLE : View.GONE);
         // The page keeps running underneath (visible to the WebView, just covered) so it isn't throttled.
+        // Coming from sign-in the page's text field still has focus (and maybe the keyboard): drop both,
+        // or the native screens start with nothing highlighted.
+        if (nativeUi) releaseWebFocus();
         web.setFocusable(!nativeUi);
         web.setFocusableInTouchMode(!nativeUi);
         if (nativeUi) {
@@ -200,6 +204,24 @@ public class MainActivity extends Activity implements TvUi.Host {
         } else {
             web.requestFocus();
         }
+    }
+
+    private void releaseWebFocus() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) imm.hideSoftInputFromWindow(web.getWindowToken(), 0);
+        if (web.hasFocus()) web.clearFocus();
+    }
+
+    /** The page can grab focus by itself (e.g. a field it focuses while loading); never while our screens show. */
+    private void onWebFocus(boolean hasFocus) {
+        if (!hasFocus || (mode != Mode.BROWSE && mode != Mode.LOADING)) return;
+        main.post(() -> {
+            if (mode != Mode.BROWSE && mode != Mode.LOADING) return;
+            releaseWebFocus();
+            web.setFocusable(false);
+            web.setFocusableInTouchMode(false);
+            if (!nativePlayer.isActive() && !watchPending) ui.focus();
+        });
     }
 
     private void showBrowse() {
@@ -224,6 +246,7 @@ public class MainActivity extends Activity implements TvUi.Host {
 
         WebView w = new WebView(this);
         w.setBackgroundColor(Color.BLACK);
+        w.setOnFocusChangeListener((v, has) -> onWebFocus(has));
 
         WebSettings s = w.getSettings();
         s.setJavaScriptEnabled(true);

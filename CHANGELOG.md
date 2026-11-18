@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Fixed: right after signing in, nothing was highlighted on the Favorites screen (the hidden
+  sign-in page kept the remote's focus). The first favorite is now highlighted straight away.
+- The player hint now reads "OK play" while paused.
+
 ## 1.0 (first public release)
 
 - Native Android TV screens: Favorites, Search across all LiveBarn rinks, venue pages with live status.

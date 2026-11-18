@@ -400,8 +400,9 @@ final class TvUi {
 
         private void fill() {
             keepFocus(body, this::fillNow, this::focusDefault);
-            // Cards just arrived while focus was parked on the tab: move it to the first card.
-            if (parkedOnTab && tabFavorites.isFocused() && firstFocusable(body) != null) focusDefault();
+            // Cards just arrived while focus was parked on the tab (or nowhere): move it to the first card.
+            if (firstFocusable(body) != null && root.isShown()
+                    && ((parkedOnTab && tabFavorites.isFocused()) || !hasUsableFocus())) focusDefault();
         }
 
         private void fillNow() {

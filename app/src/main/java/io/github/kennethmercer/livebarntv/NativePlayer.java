@@ -323,8 +323,7 @@ final class NativePlayer {
         venue.setPadding(0, px(4), 0, 0);
         o.addView(venue);
 
-        String hints = "OK pause" + (canSwitch ? "  ·  ◀ ▶ other rinks" : "") + "  ·  Back to rinks";
-        TextView hint = text(hints, 14, 0xB3FFFFFF, Typeface.create("sans-serif", Typeface.NORMAL));
+        TextView hint = text(defaultHints(), 14, 0xB3FFFFFF, Typeface.create("sans-serif", Typeface.NORMAL));
         hint.setTag("hint");
         hint.setPadding(0, px(10), 0, 0);
         o.addView(hint);
@@ -335,15 +334,21 @@ final class NativePlayer {
         if (overlay == null) return;
         updateStateLabel();
         TextView hint = overlay.findViewWithTag("hint");
-        if (hint != null && message != null) hint.setText(message);
+        if (hint != null) hint.setText(message != null ? message : defaultHints());
         overlay.animate().cancel();
         overlay.animate().alpha(1f).setDuration(200).start();
         container.removeCallbacks(hideOverlay);
         container.postDelayed(hideOverlay, OVERLAY_MS);
         if (message != null && hint != null) {
-            String hints = "OK pause" + (canSwitch ? "  ·  ◀ ▶ other rinks" : "") + "  ·  Back to rinks";
-            container.postDelayed(() -> hint.setText(hints), OVERLAY_MS);
+            container.postDelayed(() -> hint.setText(defaultHints()), OVERLAY_MS);
         }
+    }
+
+    /** Remote hints; OK's label follows the play state ("OK play" while paused). */
+    private String defaultHints() {
+        boolean paused = player != null && !player.getPlayWhenReady();
+        return (paused ? "OK play" : "OK pause")
+                + (canSwitch ? "  ·  ◀ ▶ other rinks" : "") + "  ·  Back to rinks";
     }
 
     private void updateStateLabel() {

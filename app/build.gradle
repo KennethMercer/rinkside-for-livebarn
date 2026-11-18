@@ -18,8 +18,8 @@ android {
         minSdk 23          // Android TV 6.0+
         targetSdk 35
         // versionCode must always increase so updates install over older builds.
-        versionCode 8
-        versionName '1.0'
+        versionCode 9
+        versionName '1.0.1'
     }
 
     signingConfigs {
